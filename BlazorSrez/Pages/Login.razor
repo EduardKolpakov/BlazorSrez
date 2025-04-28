@@ -1,0 +1,54 @@
+﻿@page "/login"
+@inject HttpClient Http
+@inject NavigationManager NavManager
+@inject Class.LocalStorageService LocalStorage
+
+<h3>Авторизация</h3>
+
+<EditForm Model="loginRequest" OnValidSubmit="HandleLogin">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div>
+        <label>Login:</label>
+        <InputText @bind-Value="loginRequest.Login" />
+    </div>
+    <div>
+        <label>Password:</label>
+        <InputText type="password" @bind-Value="loginRequest.Password" />
+    </div>
+    <button type="submit">Войти</button>
+</EditForm>
+
+<p>@errorMessage</p>
+
+@code {
+    private LoginRequest loginRequest = new();
+    private string errorMessage = "";
+
+    private async Task HandleLogin()
+    {
+        var response = await Http.PostAsJsonAsync("api/booksusers/login", loginRequest);
+        if (response.IsSuccessStatusCode)
+        {
+            var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+            await LocalStorage.SetItem("jwtToken", result.Token); // Сохраняем токен
+            NavManager.NavigateTo("/profile");
+        }
+        else
+        {
+            errorMessage = "Неверный логин или пароль.";
+        }
+    }
+
+    public class LoginRequest
+    {
+        public string Login { get; set; }
+        public string Password { get; set; }
+    }
+
+    public class LoginResponse
+    {
+        public string Token { get; set; }
+    }
+}

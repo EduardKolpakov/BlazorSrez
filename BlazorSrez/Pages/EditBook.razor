@@ -1,0 +1,64 @@
+﻿@page "/books/edit/{id:int}"
+@inject HttpClient Http
+@inject NavigationManager NavManager
+
+<h3>@(book.Id == 0 ? "Добавить книгу" : "Редактировать книгу")</h3>
+
+<EditForm Model="book" OnValidSubmit="SaveBook">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div>
+        <label>Title:</label>
+        <InputText @bind-Value="book.Title" />
+    </div>
+    <div>
+        <label>Description:</label>
+        <InputText @bind-Value="book.Description" />
+    </div>
+    <div>
+        <label>Year:</label>
+        <InputNumber @bind-Value="book.Year" />
+    </div>
+    <button type="submit">Сохранить</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Book book = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id != 0)
+        {
+            var response = await Http.GetAsync($"api/booksusers/books/{Id}");
+            if (response.IsSuccessStatusCode)
+            {
+                book = await response.Content.ReadFromJsonAsync<Book>();
+            }
+        }
+    }
+
+    private async Task SaveBook()
+    {
+        if (Id == 0)
+        {
+            await Http.PostAsJsonAsync("api/booksusers/books", book);
+        }
+        else
+        {
+            await Http.PutAsJsonAsync($"api/booksusers/books/{Id}", book);
+        }
+        NavManager.NavigateTo("/books");
+    }
+
+    public class Book
+    {
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public int Year { get; set; }
+    }
+}

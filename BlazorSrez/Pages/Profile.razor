@@ -1,0 +1,99 @@
+﻿@page "/profile"
+@inject HttpClient Http
+@inject NavigationManager NavManager
+@using BlazorSrez.Pages.Class
+@inject Class.AuthenticatedHttpClientFactory HttpClientFactory
+@inject IJSRuntime JSRuntime
+
+<h3>Личный кабинет</h3>
+
+@if (user == null)
+{
+    <p>Загрузка...</p>
+}
+else
+{
+    <div>
+        <label>Имя:</label>
+        <InputText @bind-Value="user.Name" />
+    </div>
+    <div>
+        <label>Email:</label>
+        <InputText @bind-Value="user.Email" />
+    </div>
+    <div>
+        <label>Роль:</label>
+        <p>@user.Role</p>
+    </div>
+    <div>
+        <label>Логин:</label>
+        <InputText @bind-Value="user.login" />
+    </div>
+    <div>
+        <label>Пароль:</label>
+        <InputText type="password" @bind-Value="newPassword" placeholder="Введите новый пароль" />
+    </div>
+    <button @onclick="SaveChanges">Сохранить изменения</button>
+}
+
+@code {
+    private User user;
+    private string newPassword = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var client = await HttpClientFactory.CreateClientAsync();
+            var response = await client.GetAsync("api/BooksUsers/CurrentUser");
+
+            if (response.IsSuccessStatusCode)
+            {
+                user = await response.Content.ReadFromJsonAsync<User>();
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                Console.WriteLine("Сессия истекла. Пожалуйста, войдите снова.");
+                NavManager.NavigateTo("/login"); // Перенаправление на страницу входа
+            }
+            else
+            {
+                Console.WriteLine("Ошибка при загрузке данных пользователя.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка: {ex.Message}");
+        }
+    }
+
+    private async Task SaveChanges()
+    {
+        var request = new UpdateUserRequest
+            {
+                Name = user.Name,
+                Email = user.Email,
+                NewLogin = user.login,
+                NewPassword = newPassword
+            };
+
+        var response = await Http.PutAsJsonAsync($"api/booksusers/UpdateUser/{user.Id_User}", request);
+        if (response.IsSuccessStatusCode)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "Данные успешно обновлены!");
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "Ошибка при сохранении данных.");
+        }
+    }
+
+    public class UserDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Email { get; set; }
+        public string Role { get; set; }
+        public string Login { get; set; }
+    }
+}

@@ -1,0 +1,43 @@
+﻿@page "/swaps"
+@inject HttpClient Http
+
+<h3>Обмены</h3>
+
+@if (swaps == null)
+{
+    <p>Загрузка...</p>
+}
+else
+{
+    <ul>
+        @foreach (var swap in swaps)
+        {
+            <li>
+                <strong>User1:</strong> @swap.User1Name ↔ <strong>User2:</strong> @swap.User2Name
+                <br />
+                <strong>Book1:</strong> @swap.Book1Title ↔ <strong>Book2:</strong> @swap.Book2Title
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    private List<Swap> swaps;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await Http.GetAsync("api/booksusers/swaps");
+        if (response.IsSuccessStatusCode)
+        {
+            swaps = await response.Content.ReadFromJsonAsync<List<Swap>>();
+        }
+    }
+
+    public class Swap
+    {
+        public int User1Name { get; set; }
+        public int User2Name { get; set; }
+        public int Book1Title { get; set; }
+        public int Book2Title { get; set; }
+    }
+}

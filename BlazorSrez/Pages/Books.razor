@@ -1,0 +1,41 @@
+﻿@page "/books"
+@inject HttpClient Http
+
+<h3>Список книг</h3>
+
+@if (books == null)
+{
+    <p>Загрузка...</p>
+}
+else
+{
+    <ul>
+        @foreach (var book in books)
+        {
+            <li>
+                <strong>@book.Title</strong> (@book.Year) - @book.Description
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    private List<Book> books;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await Http.GetAsync("api/booksusers/books");
+        if (response.IsSuccessStatusCode)
+        {
+            books = await response.Content.ReadFromJsonAsync<List<Book>>();
+        }
+    }
+
+    public class Book
+    {
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public int Year { get; set; }
+    }
+}
