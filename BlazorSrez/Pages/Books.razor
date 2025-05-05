@@ -24,7 +24,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var response = await Http.GetAsync("api/booksusers/books");
+        var response = await Http.GetAsync("api/booksusers/GetBooks");
         if (response.IsSuccessStatusCode)
         {
             books = await response.Content.ReadFromJsonAsync<List<Book>>();

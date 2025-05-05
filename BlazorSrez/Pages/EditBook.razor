@@ -45,11 +45,11 @@
     {
         if (Id == 0)
         {
-            await Http.PostAsJsonAsync("api/booksusers/books", book);
+            await Http.PostAsJsonAsync("api/booksusers/CreateBook", book);
         }
         else
         {
-            await Http.PutAsJsonAsync($"api/booksusers/books/{Id}", book);
+            await Http.PutAsJsonAsync($"api/booksusers/UpdateBook/{Id}", book);
         }
         NavManager.NavigateTo("/books");
     }
